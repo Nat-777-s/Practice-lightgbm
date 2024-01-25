@@ -37,5 +37,20 @@ df_iris_2class = df_iris[df_iris['target']!=0]
 # 残りの2種類に0と1のラベルを与える
 df_iris_2class['target'] = df_iris_2class['target'] - 1
 
-X_train = df_iris_2class.drop('target', axis=1)
-y_train = df_iris_2class['target']
+X = df_iris_2class.drop('target', axis=1)
+y = df_iris_2class['target']
+
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold
+
+#テストセットと訓練セットに分ける
+X_train_all, X_test, y_train_all, y_test = train_test_split(X, y, test_size=0.2, random_state=0, stratify=y)
+
+stratifiedkfold = StratifiedKFold(n_splits=5, shuffle=True,  random_state=50)
+train_index, val_index = list(stratifiedkfold.split(X_train_all))[0]
+X_train_part, X_val = X_train_all.iloc[train_index], X_train_all.iloc[val_index]
+y_train_part, y_val = y_train_all.iloc[train_index], y_train_all.iloc[val_index]
+
+# lightgbmの実装
+import lightgbm as lgb
+from sklearn.metrics import log_loss
