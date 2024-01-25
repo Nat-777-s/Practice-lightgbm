@@ -62,36 +62,23 @@ lgb_eval = lgb.Dataset(X_val, y_val)
 # ハイパーパラメータの設定
 params = {'objective': 'binary', 'seed': 70, 'verbose': -1, 'metrics': 'binary_logloss'}
 num_round = 100
-evals_result = {} #結果を格納するための辞書
 
 # 学習の実行
 # バリデーションデータもモデルに渡し、学習の進行とともにスコアがどう変わるかモニタリングする
 model = lgb.train(params, lgb_train, num_boost_round=num_round,
-                  valid_names=['train', 'valid'], valid_sets=[lgb_train, lgb_eval],
-                  evals_result = evals_result)
+                  valid_names=['train', 'valid'], valid_sets=[lgb_train, lgb_eval])
 
 # バリデーションデータでのスコアの確認
 va_pred = model.predict(X_val)
 score = log_loss(y_val, va_pred)
 print(f'logloss: {score:.4f}')
 
-print(evals_result.keys())
-print(evals_result['eval'].keys())
-print(evals_result['train'].keys())
-
-train_metric = evals_result['train']['auc']
-eval_metric = evals_result['eval']['auc']
-train_metric[:5], eval_metric[:5]
-
-plt.plot(train_metric, label='train auc')
-plt.plot(eval_metric, label='eval auc')
-plt.grid()
-plt.legend()
-plt.ylim(0, 1.1)
-
-plt.xlabel('rounds')
-plt.ylabel('auc')
+lgb.plot_importance(model, figsize=(8,4), max_num_features=2, importance_type='gain')
 plt.show()
 
 # 予測
 pred = model.predict(X_test)
+pred = np.argmax(pred, axis=1) 
+
+from sklearn import metrics
+print(metrics.classification_report(y_test, pred))
