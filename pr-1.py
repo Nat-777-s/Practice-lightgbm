@@ -34,3 +34,8 @@ df_iris['target'] = sk_iris_origin.target
 df_iris_2class = df_iris[df_iris['target']!=0]
 # print(df_iris_2class.head()) #データ内容の確認
 
+# 残りの2種類に0と1のラベルを与える
+df_iris_2class['target'] = df_iris_2class['target'] - 1
+
+X_train = df_iris_2class.drop('target', axis=1)
+y_train = df_iris_2class['target']
