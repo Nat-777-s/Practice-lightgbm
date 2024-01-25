@@ -47,10 +47,51 @@ from sklearn.model_selection import StratifiedKFold
 X_train_all, X_test, y_train_all, y_test = train_test_split(X, y, test_size=0.2, random_state=0, stratify=y)
 
 stratifiedkfold = StratifiedKFold(n_splits=5, shuffle=True,  random_state=50)
-train_index, val_index = list(stratifiedkfold.split(X_train_all))[0]
+train_index, val_index = list(stratifiedkfold.split(X_train_all,y_train_all))[0]
 X_train_part, X_val = X_train_all.iloc[train_index], X_train_all.iloc[val_index]
 y_train_part, y_val = y_train_all.iloc[train_index], y_train_all.iloc[val_index]
 
 # lightgbmの実装
 import lightgbm as lgb
 from sklearn.metrics import log_loss
+
+# 特徴量と目的変数をlightgbmのデータ構造に変換する
+lgb_train = lgb.Dataset(X_train_part, y_train_part)
+lgb_eval = lgb.Dataset(X_val, y_val)
+
+# ハイパーパラメータの設定
+params = {'objective': 'binary', 'seed': 70, 'verbose': -1, 'metrics': 'binary_logloss'}
+num_round = 100
+evals_result = {} #結果を格納するための辞書
+
+# 学習の実行
+# バリデーションデータもモデルに渡し、学習の進行とともにスコアがどう変わるかモニタリングする
+model = lgb.train(params, lgb_train, num_boost_round=num_round,
+                  valid_names=['train', 'valid'], valid_sets=[lgb_train, lgb_eval],
+                  evals_result = evals_result)
+
+# バリデーションデータでのスコアの確認
+va_pred = model.predict(X_val)
+score = log_loss(y_val, va_pred)
+print(f'logloss: {score:.4f}')
+
+print(evals_result.keys())
+print(evals_result['eval'].keys())
+print(evals_result['train'].keys())
+
+train_metric = evals_result['train']['auc']
+eval_metric = evals_result['eval']['auc']
+train_metric[:5], eval_metric[:5]
+
+plt.plot(train_metric, label='train auc')
+plt.plot(eval_metric, label='eval auc')
+plt.grid()
+plt.legend()
+plt.ylim(0, 1.1)
+
+plt.xlabel('rounds')
+plt.ylabel('auc')
+plt.show()
+
+# 予測
+pred = model.predict(X_test)
