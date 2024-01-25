@@ -2,20 +2,19 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-
-# print(pd.__version__) #スクリプト上でバージョンを確認できる。
+# print(pd.__version__) #スクリプト上でバージョン確認
 
 from sklearn.datasets import load_iris
 
-iris = load_iris()
-#print(iris.DESCR)  #データセットに関する説明を表示
+sk_iris_origin = load_iris()
+# print(iris.DESCR)  #データセットに関する説明を表示
 # print(type(iris)) #インポートできているか確認
 
-df_iris = pd.DataFrame(iris.data, columns=iris.feature_names)
-df_iris['target'] = iris.target
+df_iris = pd.DataFrame(sk_iris_origin.data, columns=sk_iris_origin.feature_names)
+df_iris['target'] = sk_iris_origin.target
 
 # print(df_iris.shape) #irisデータセットのサイズを確認
-df_iris.head()
+# print(df_iris.head()) #データ内容の確認
 
 # #データをプロットする
 # fig = plt.figure(figsize = (5,5))
@@ -30,3 +29,8 @@ df_iris.head()
 
 # plt.legend()
 # plt.show()
+
+#'Versicolour'と'Virginica'の区別に着目
+df_iris_2class = df_iris[df_iris['target']!=0]
+# print(df_iris_2class.head()) #データ内容の確認
+
