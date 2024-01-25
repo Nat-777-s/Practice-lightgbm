@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn import metrics
 
 # print(pd.__version__) #スクリプト上でバージョン確認
 
@@ -12,6 +13,11 @@ sk_iris_origin = load_iris()
 
 df_iris = pd.DataFrame(sk_iris_origin.data, columns=sk_iris_origin.feature_names)
 df_iris['target'] = sk_iris_origin.target
+
+# rmseの評価関数
+def get_evaluate(y_test, predict):    
+    rmse = np.sqrt(metrics.mean_squared_error(y_test, predict))
+    return rmse
 
 # print(df_iris.shape) #irisデータセットのサイズを確認
 # print(df_iris.head()) #データ内容の確認
@@ -73,12 +79,11 @@ va_pred = model.predict(X_val)
 score = log_loss(y_val, va_pred)
 print(f'logloss: {score:.4f}')
 
-lgb.plot_importance(model, figsize=(8,4), max_num_features=2, importance_type='gain')
-plt.show()
+# #重要度を出力 
+# lgb.plot_importance(model, figsize=(8,4), max_num_features=2, importance_type='gain')
+# plt.show()
 
 # 予測
-pred = model.predict(X_test)
-pred = np.argmax(pred, axis=1) 
-
-from sklearn import metrics
-print(metrics.classification_report(y_test, pred))
+pred = model.predict(X_test, num_iteration=model.best_iteration) 
+rmse= get_evaluate(y_test, pred)
+print('rmse:{}'.format(rmse))
